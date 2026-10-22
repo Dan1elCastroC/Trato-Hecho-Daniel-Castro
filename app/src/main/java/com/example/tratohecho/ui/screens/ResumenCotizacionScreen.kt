@@ -1,6 +1,8 @@
 package com.example.tratohecho.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.tratohecho.data.Cliente
 import com.example.tratohecho.data.Cotizacion
+import com.example.tratohecho.data.obtenerLineas
 import com.example.tratohecho.ui.components.calcularTotal
 import com.example.tratohecho.ui.components.dinero
 
@@ -44,6 +47,7 @@ fun ResumenCotizacionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         AnimatedVisibility(visible = visible) {
@@ -53,8 +57,13 @@ fun ResumenCotizacionScreen(
                     Text("Cotización guardada", style = MaterialTheme.typography.headlineMedium)
                     Text("Cliente: ${cliente?.nombre ?: "Sin cliente"}")
                     if (cotizacion != null) {
-                        val subtotal = cotizacion.cantidad * cotizacion.precioUnitario
-                        Text("Concepto: ${cotizacion.concepto}")
+                        val lineas = cotizacion.obtenerLineas()
+                        val subtotal = lineas.sumOf { it.subtotal }
+                        Text("Productos y servicios (${lineas.size}):", style = MaterialTheme.typography.titleSmall)
+                        lineas.forEachIndexed { indice, linea ->
+                            Text("${indice + 1}. ${linea.concepto} — ${linea.cantidad} × ${dinero(linea.precioUnitario)} ${cotizacion.moneda}")
+                            Text("   Subtotal: ${dinero(linea.subtotal)} ${cotizacion.moneda}")
+                        }
                         Text("Subtotal: ${dinero(subtotal)} ${cotizacion.moneda}")
                         Text("Descuento: ${cotizacion.descuentoPorcentaje}%")
                         Text("Impuesto: ${cotizacion.impuestoPorcentaje}%")

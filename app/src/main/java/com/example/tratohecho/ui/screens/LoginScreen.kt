@@ -29,19 +29,16 @@ import com.example.tratohecho.ui.components.CampoTexto
 @Composable
 fun LoginScreen(onLoginCorrecto: () -> Unit) {
     var usuario by remember { mutableStateOf("") }
-    var empresa by remember { mutableStateOf("") }
     var clave by remember { mutableStateOf("") }
 
     var intentoIngresar by remember { mutableStateOf(false) }
     var usuarioEditado by remember { mutableStateOf(false) }
-    var empresaEditada by remember { mutableStateOf(false) }
     var claveEditada by remember { mutableStateOf(false) }
 
     val errorUsuario = if (usuarioEditado || intentoIngresar) ValidadorCampos.validarNombre(usuario) else null
-    val errorEmpresa = if (empresaEditada || intentoIngresar) ValidadorCampos.validarNombre(empresa) else null
     val errorClave = if (claveEditada || intentoIngresar) ValidadorCampos.validarClave(clave) else null
-    val formularioValido = listOf(errorUsuario, errorEmpresa, errorClave).all { it == null } &&
-        usuario.isNotBlank() && empresa.isNotBlank() && clave.isNotBlank()
+    val formularioValido = listOf(errorUsuario, errorClave).all { it == null } &&
+        usuario.isNotBlank() && clave.isNotBlank()
 
     Column(
         modifier = Modifier
@@ -62,16 +59,6 @@ fun LoginScreen(onLoginCorrecto: () -> Unit) {
                 usuarioEditado = true
             },
             error = errorUsuario,
-            modifier = Modifier.fillMaxWidth()
-        )
-        CampoTexto(
-            label = "Empresa",
-            valor = empresa,
-            onValorChange = {
-                empresa = it
-                empresaEditada = true
-            },
-            error = errorEmpresa,
             modifier = Modifier.fillMaxWidth()
         )
         CampoTexto(

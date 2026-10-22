@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.tratohecho.data.Cliente
 import com.example.tratohecho.data.Cotizacion
+import com.example.tratohecho.data.obtenerLineas
 import com.example.tratohecho.ui.components.calcularTotal
 import com.example.tratohecho.ui.components.dinero
 
@@ -122,7 +123,7 @@ fun ClienteDetalleScreen(
             items(cotizaciones, key = { it.id }) { cotizacion ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp)) {
-                        Text(cotizacion.concepto, style = MaterialTheme.typography.titleSmall)
+                        Text(cotizacion.obtenerLineas().joinToString(", ") { it.concepto }, style = MaterialTheme.typography.titleSmall)
                         Text("Total: ${dinero(calcularTotal(cotizacion))} ${cotizacion.moneda}")
                         Text("Estado: ${cotizacion.estado}")
                     }

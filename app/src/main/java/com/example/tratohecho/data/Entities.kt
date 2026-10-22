@@ -1,5 +1,6 @@
 package com.example.tratohecho.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -38,5 +39,6 @@ data class Cotizacion(
     val descuentoPorcentaje: Double,
     val impuestoPorcentaje: Double,
     val moneda: String,
+    @ColumnInfo(defaultValue = "''") val lineasJson: String = "",
     val estado: String = "Borrador"
 )

@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.tratohecho.data.Cliente
 import com.example.tratohecho.data.Cotizacion
+import com.example.tratohecho.data.obtenerLineas
 import com.example.tratohecho.ui.components.calcularTotal
 import com.example.tratohecho.ui.components.dinero
 
@@ -48,7 +49,7 @@ fun CotizacionesScreen(
                 val cliente = clientes.find { it.id == cotizacion.clienteId }
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(cotizacion.concepto, style = MaterialTheme.typography.titleMedium)
+                        Text(cotizacion.obtenerLineas().joinToString(", ") { it.concepto }, style = MaterialTheme.typography.titleMedium)
                         Text("Cliente: ${cliente?.nombre ?: "Sin cliente"}")
                         Text("Total: ${dinero(calcularTotal(cotizacion))} ${cotizacion.moneda}")
                         Text("Estado actual: ${cotizacion.estado}")
