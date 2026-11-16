@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -42,6 +44,7 @@ import com.example.tratohecho.model.ValidadorCampos
 import com.example.tratohecho.ui.components.CampoProductoServicio
 import com.example.tratohecho.ui.components.CampoTexto
 import com.example.tratohecho.ui.components.dinero
+import com.example.tratohecho.viewmodel.IndicadoresUiState
 
 private data class LineaFormulario(
     val id: Long,
@@ -56,6 +59,8 @@ private data class LineaFormulario(
 @Composable
 fun NuevaCotizacionScreen(
     cliente: Cliente?,
+    indicadores: IndicadoresUiState,
+    onReintentarIndicadores: () -> Unit,
     onGuardar: (Cotizacion) -> Unit
 ) {
     val lineas = remember { mutableStateListOf(LineaFormulario(id = 0L)) }
@@ -177,9 +182,33 @@ fun NuevaCotizacionScreen(
                 FilterChip(selected = moneda == opcion, onClick = { moneda = opcion }, label = { Text(opcion) })
             }
         }
-        Text("USD y UF son monedas seleccionadas, sin conversión automática.", style = MaterialTheme.typography.bodySmall)
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Indicadores económicos (mindicador.cl)", style = MaterialTheme.typography.titleMedium)
+                when (indicadores) {
+                    is IndicadoresUiState.Cargando -> Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Text("Consultando dólar y UF...")
+                    }
+                    is IndicadoresUiState.Exito -> {
+                        Text("Dólar: ${dinero(indicadores.dolar)} CLP")
+                        Text("UF: ${dinero(indicadores.uf)} CLP")
+                    }
+                    is IndicadoresUiState.Error -> {
+                        Text(indicadores.mensaje, color = MaterialTheme.colorScheme.error)
+                        OutlinedButton(onClick = onReintentarIndicadores) { Text("Reintentar") }
+                    }
+                }
+            }
+        }
         Text("Subtotal: ${dinero(subtotal)} $moneda")
         Text("Total estimado: ${dinero(total)} $moneda", style = MaterialTheme.typography.titleMedium)
+        if (indicadores is IndicadoresUiState.Exito && moneda != "CLP") {
+            val tasa = if (moneda == "USD") indicadores.dolar else indicadores.uf
+            Text("Equivalente: ${dinero(total * tasa)} CLP", style = MaterialTheme.typography.titleMedium)
+        }
 
         AnimatedVisibility(visible = intentoGuardar && (!formularioValido || cliente == null)) {
             Text("Corrige los datos de los productos y porcentajes antes de guardar.",

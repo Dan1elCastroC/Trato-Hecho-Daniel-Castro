@@ -13,6 +13,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+sealed interface IndicadoresUiState {
+    data object Cargando : IndicadoresUiState
+    data class Exito(val dolar: Double, val uf: Double) : IndicadoresUiState
+    data class Error(val mensaje: String) : IndicadoresUiState
+}
+
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = TratoHechoRepository(AppDatabase.getDatabase(application))
 
@@ -27,6 +33,31 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = emptyList()
     )
+
+    private val _indicadores = MutableStateFlow<IndicadoresUiState>(IndicadoresUiState.Cargando)
+    val indicadores = _indicadores.asStateFlow()
+
+    init {
+        cargarIndicadores()
+    }
+
+    fun cargarIndicadores() {
+        viewModelScope.launch {
+            _indicadores.value = IndicadoresUiState.Cargando
+            _indicadores.value = try {
+                val respuesta = repository.obtenerIndicadores()
+                val dolar = respuesta.dolar?.valor
+                val uf = respuesta.uf?.valor
+                if (dolar != null && uf != null) {
+                    IndicadoresUiState.Exito(dolar = dolar, uf = uf)
+                } else {
+                    IndicadoresUiState.Error("Respuesta incompleta del servicio")
+                }
+            } catch (e: Exception) {
+                IndicadoresUiState.Error("Sin conexión: no se pudo obtener el dólar y la UF")
+            }
+        }
+    }
 
     private val _mensaje = MutableStateFlow("")
     val mensaje = _mensaje.asStateFlow()

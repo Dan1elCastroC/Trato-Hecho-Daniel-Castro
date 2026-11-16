@@ -28,6 +28,7 @@ import com.example.tratohecho.ui.screens.NuevoClienteScreen
 import com.example.tratohecho.ui.screens.ResumenCotizacionScreen
 import com.example.tratohecho.ui.screens.VisitaScreen
 import com.example.tratohecho.viewmodel.AppViewModel
+import com.example.tratohecho.viewmodel.IndicadoresUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +36,7 @@ fun AppNavigation(viewModel: AppViewModel) {
     val navController = rememberNavController()
     val clientes by viewModel.clientes.collectAsStateWithLifecycle()
     val cotizaciones by viewModel.cotizaciones.collectAsStateWithLifecycle()
+    val indicadores by viewModel.indicadores.collectAsStateWithLifecycle()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val mostrarVolver = currentRoute != Screen.Login.route && currentRoute != Screen.Home.route
@@ -139,6 +141,8 @@ fun AppNavigation(viewModel: AppViewModel) {
                 val cliente = clientes.find { it.id == clienteId }
                 NuevaCotizacionScreen(
                     cliente = cliente,
+                    indicadores = indicadores,
+                    onReintentarIndicadores = viewModel::cargarIndicadores,
                     onGuardar = { cotizacion ->
                         viewModel.guardarCotizacion(cotizacion) { cotizacionId ->
                             navController.navigate(Screen.ResumenCotizacion.crearRuta(cotizacionId))
