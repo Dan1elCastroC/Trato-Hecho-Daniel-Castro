@@ -49,7 +49,7 @@ App Compose → **AppViewModel** (estado + corrutinas) → **TratoHechoRepositor
 - *¿Qué es `suspend`?* Función de corrutina: se llama sin bloquear la UI desde `viewModelScope.launch`.
 - *¿Qué hace `@Upsert`?* Inserta o actualiza según la clave primaria (sincronización sin borrar cotizaciones por CASCADE).
 - *¿Dónde está el JSON ↔ objeto?* `GsonConverterFactory` en Retrofit; en Spring, Jackson (`jackson-module-kotlin`).
-- *Git*: un integrante; mostrar commits, rama main y (si se crean) ramas `feature/*`. Trello: pegar enlace en README §6.
+- *Git*: un integrante; mostrar commits, rama main y (si se crean) ramas `feature/*`..
 
 ## Banco de preguntas para ensayar (responde en voz alta)
 1. ¿Qué dependencias usa el backend y para qué? (web = REST, data-jpa = acceso a BD, validation = anotaciones, mysql-connector = driver, h2 = solo tests).

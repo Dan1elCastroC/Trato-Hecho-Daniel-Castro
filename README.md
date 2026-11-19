@@ -84,4 +84,3 @@ Requisitos: JDK 17, Android Studio, MySQL o MariaDB en `localhost:3306`.
 ## 6. Gestión del proyecto
 
 - Repositorio: https://github.com/Dan1elCastroC/Trato-Hecho-Daniel-Castro
-- Tablero Trello: *(pegar aquí el enlace del tablero)*
