@@ -50,3 +50,15 @@ App Compose → **AppViewModel** (estado + corrutinas) → **TratoHechoRepositor
 - *¿Qué hace `@Upsert`?* Inserta o actualiza según la clave primaria (sincronización sin borrar cotizaciones por CASCADE).
 - *¿Dónde está el JSON ↔ objeto?* `GsonConverterFactory` en Retrofit; en Spring, Jackson (`jackson-module-kotlin`).
 - *Git*: un integrante; mostrar commits, rama main y (si se crean) ramas `feature/*`. Trello: pegar enlace en README §6.
+
+## Banco de preguntas para ensayar (responde en voz alta)
+1. ¿Qué dependencias usa el backend y para qué? (web = REST, data-jpa = acceso a BD, validation = anotaciones, mysql-connector = driver, h2 = solo tests).
+2. ¿Qué pasa si el microservicio está apagado y guardo un cliente? (Retrofit lanza excepción, el repositorio no toca Room, el ViewModel muestra el Toast).
+3. ¿Dónde se define la URL base y cómo la cambio para un celular real?
+4. ¿Qué diferencia hay entre `@Entity` de Room y `@Entity` de JPA? (misma anotación, distinto framework: local SQLite vs MySQL remoto).
+5. ¿Por qué el repositorio escribe primero en remoto y después en Room?
+6. ¿Qué hace `ddl-auto=update`? ¿Y `ErrorHandler`?
+7. ¿Qué verifica `ApiCrudTest`? ¿Por qué usa H2?
+8. ¿Por qué se mockea `TratoHechoApi` en los tests de la app?
+9. ¿Cómo se genera el APK firmado y dónde está el .jks?
+10. Muéstrame en Git los commits y ramas; ¿qué hay en el Trello?
