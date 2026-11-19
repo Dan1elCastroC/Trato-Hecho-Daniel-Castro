@@ -1,7 +1,8 @@
 package com.example.tratohecho.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.tratohecho.data.AppDatabase
 import com.example.tratohecho.data.Cliente
@@ -19,8 +20,14 @@ sealed interface IndicadoresUiState {
     data class Error(val mensaje: String) : IndicadoresUiState
 }
 
-class AppViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = TratoHechoRepository(AppDatabase.getDatabase(application))
+class AppViewModel(private val repository: TratoHechoRepository) : ViewModel() {
+
+    /** Crea el ViewModel con su repositorio real (Room + Retrofit). */
+    class Factory(private val application: Application) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T =
+            AppViewModel(TratoHechoRepository(AppDatabase.getDatabase(application))) as T
+    }
 
     val clientes = repository.clientes.stateIn(
         scope = viewModelScope,
@@ -38,6 +45,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val indicadores = _indicadores.asStateFlow()
 
     init {
+        sincronizar()
         cargarIndicadores()
     }
 
@@ -66,21 +74,30 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _mensaje.value = ""
     }
 
+    /** Ejecuta una operacion contra el microservicio y avisa si falla (sin tumbar la app). */
+    private fun ejecutar(exito: String, bloque: suspend () -> Unit) {
+        viewModelScope.launch {
+            try {
+                bloque()
+                if (exito.isNotBlank()) _mensaje.value = exito
+            } catch (e: Exception) {
+                _mensaje.value = "No se pudo completar: revisa que el microservicio este encendido"
+            }
+        }
+    }
+
+    fun sincronizar() = ejecutar("") { repository.sincronizar() }
+
     fun guardarCliente(
         nombre: String,
         correo: String,
         telefono: String,
         onGuardado: (Long) -> Unit
     ) {
-        viewModelScope.launch {
+        ejecutar("Cliente guardado en el microservicio") {
             val id = repository.crearCliente(
-                Cliente(
-                    nombre = nombre.trim(),
-                    correo = correo.trim(),
-                    telefono = telefono.trim()
-                )
+                Cliente(nombre = nombre.trim(), correo = correo.trim(), telefono = telefono.trim())
             )
-            _mensaje.value = "Cliente guardado localmente"
             onGuardado(id)
         }
     }
@@ -92,19 +109,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         longitud: Double?,
         onGuardado: () -> Unit
     ) {
-        viewModelScope.launch {
+        ejecutar("Visita guardada con datos nativos") {
             val cliente = repository.obtenerCliente(clienteId)
             if (cliente != null) {
-                repository.actualizarCliente(
-                    cliente.copy(
-                        fotoUri = fotoUri,
-                        latitud = latitud,
-                        longitud = longitud
-                    )
-                )
-                _mensaje.value = "Visita guardada con datos nativos"
+                repository.actualizarCliente(cliente.copy(fotoUri = fotoUri, latitud = latitud, longitud = longitud))
             }
             onGuardado()
+        }
+    }
+
+    fun eliminarCliente(id: Long, onEliminado: () -> Unit) {
+        ejecutar("Cliente eliminado") {
+            repository.eliminarCliente(id)
+            onEliminado()
         }
     }
 
@@ -112,17 +129,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         cotizacion: Cotizacion,
         onGuardado: (Long) -> Unit
     ) {
-        viewModelScope.launch {
-            val id = repository.crearCotizacion(cotizacion)
-            _mensaje.value = "Cotización guardada en Room"
-            onGuardado(id)
+        ejecutar("Cotizacion guardada en el microservicio") {
+            onGuardado(repository.crearCotizacion(cotizacion))
         }
     }
 
     fun cambiarEstadoCotizacion(id: Long, estado: String) {
-        viewModelScope.launch {
-            repository.cambiarEstadoCotizacion(id, estado)
-            _mensaje.value = "Estado actualizado a $estado"
-        }
+        ejecutar("Estado actualizado a $estado") { repository.cambiarEstadoCotizacion(id, estado) }
+    }
+
+    fun eliminarCotizacion(id: Long) {
+        ejecutar("Cotizacion eliminada") { repository.eliminarCotizacion(id) }
     }
 }

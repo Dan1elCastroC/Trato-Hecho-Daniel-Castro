@@ -29,6 +29,7 @@ fun CotizacionesScreen(
     cotizaciones: List<Cotizacion>,
     clientes: List<Cliente>,
     onCambiarEstado: (Long, String) -> Unit,
+    onEliminar: (Long) -> Unit = {},
     onVolverClientes: () -> Unit
 ) {
     Column(
@@ -59,6 +60,9 @@ fun CotizacionesScreen(
                                     Text(estado, style = MaterialTheme.typography.labelSmall)
                                 }
                             }
+                        }
+                        TextButton(onClick = { onEliminar(cotizacion.id) }) {
+                            Text("Eliminar cotizacion", color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }

@@ -11,7 +11,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
@@ -37,6 +40,14 @@ fun AppNavigation(viewModel: AppViewModel) {
     val clientes by viewModel.clientes.collectAsStateWithLifecycle()
     val cotizaciones by viewModel.cotizaciones.collectAsStateWithLifecycle()
     val indicadores by viewModel.indicadores.collectAsStateWithLifecycle()
+    val mensaje by viewModel.mensaje.collectAsStateWithLifecycle()
+    val contexto = LocalContext.current
+    LaunchedEffect(mensaje) {
+        if (mensaje.isNotBlank()) {
+            Toast.makeText(contexto, mensaje, Toast.LENGTH_SHORT).show()
+            viewModel.limpiarMensaje()
+        }
+    }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val mostrarVolver = currentRoute != Screen.Login.route && currentRoute != Screen.Home.route
@@ -117,7 +128,12 @@ fun AppNavigation(viewModel: AppViewModel) {
                     onNuevaCotizacion = { navController.navigate(Screen.NuevaCotizacion.crearRuta(clienteId)) },
                     onRegistrarVisita = { navController.navigate(Screen.Visita.crearRuta(clienteId)) },
                     onVerCotizaciones = { navController.navigate(Screen.Cotizaciones.route) },
-                    onVolverClientes = { navController.navigate(Screen.Clientes.route) }
+                    onVolverClientes = { navController.navigate(Screen.Clientes.route) },
+                    onEliminarCliente = {
+                        viewModel.eliminarCliente(clienteId) {
+                            navController.navigate(Screen.Clientes.route) { popUpTo(Screen.Clientes.route) { inclusive = true } }
+                        }
+                    }
                 )
             }
 
@@ -174,6 +190,7 @@ fun AppNavigation(viewModel: AppViewModel) {
                     cotizaciones = cotizaciones,
                     clientes = clientes,
                     onCambiarEstado = viewModel::cambiarEstadoCotizacion,
+                    onEliminar = viewModel::eliminarCotizacion,
                     onVolverClientes = { navController.navigate(Screen.Clientes.route) }
                 )
             }

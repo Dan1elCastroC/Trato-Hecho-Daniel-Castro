@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
+    jacoco
 }
 
 android {
@@ -25,6 +26,24 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+    }
+
+    // Firma del APK release: el .jks va en la carpeta keystore/ del repositorio (requisito de la evaluacion).
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("keystore/tratohecho.jks")
+            storePassword = "tratohecho123"
+            keyAlias = "tratohecho"
+            keyPassword = "tratohecho123"
+        }
+    }
+
+    buildTypes {
+        debug { enableUnitTestCoverage = true }
+        release {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+        }
     }
 
     buildFeatures {
@@ -59,6 +78,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:5.8.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testImplementation("io.mockk:mockk:1.13.10")
+    testImplementation("org.json:json:20231013") // org.json real para JVM (en Android viene incluido)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
 
     // Prueba de interfaz con Compose UI Test
@@ -73,4 +93,20 @@ dependencies {
 // Obligatorio para usar JUnit 5 / Kotest
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+}
+
+// Cobertura de la logica (ViewModel, Repository, validadores, API). Ejecutar: gradlew :app:cobertura
+tasks.register<JacocoReport>("cobertura") {
+    dependsOn("testDebugUnitTest")
+    val clases = fileTree("$buildDir/tmp/kotlin-classes/debug") {
+        include(
+            "com/example/tratohecho/data/**", "com/example/tratohecho/viewmodel/**",
+            "com/example/tratohecho/model/**", "com/example/tratohecho/ui/components/CalculadoraCotizacion*"
+        )
+        exclude("**/AppDatabase*", "**/*Dao_Impl*", "**/*\$*Companion*", "**/ComposableSingletons*")
+    }
+    classDirectories.setFrom(clases)
+    sourceDirectories.setFrom("src/main/java")
+    executionData.setFrom(fileTree(buildDir) { include("**/*.exec", "**/*.ec") })
+    reports { xml.required.set(true); html.required.set(true); csv.required.set(true) }
 }

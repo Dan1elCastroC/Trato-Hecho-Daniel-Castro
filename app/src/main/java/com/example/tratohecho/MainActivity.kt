@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             TratoHechoTheme {
-                val appViewModel: AppViewModel = viewModel()
+                val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(application))
                 AppNavigation(viewModel = appViewModel)
             }
         }

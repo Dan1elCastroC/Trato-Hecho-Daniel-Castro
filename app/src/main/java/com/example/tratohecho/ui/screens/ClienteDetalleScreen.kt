@@ -43,7 +43,8 @@ fun ClienteDetalleScreen(
     onNuevaCotizacion: () -> Unit,
     onRegistrarVisita: () -> Unit,
     onVerCotizaciones: () -> Unit,
-    onVolverClientes: () -> Unit
+    onVolverClientes: () -> Unit,
+    onEliminarCliente: () -> Unit = {}
 ) {
     if (cliente == null) {
         Column(
@@ -113,6 +114,10 @@ fun ClienteDetalleScreen(
         OutlinedButton(onClick = onVerCotizaciones, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.LocationOn, contentDescription = null)
             Text("  Ver seguimiento")
+        }
+
+        OutlinedButton(onClick = onEliminarCliente, modifier = Modifier.fillMaxWidth()) {
+            Text("Eliminar cliente (y sus cotizaciones)", color = MaterialTheme.colorScheme.error)
         }
 
         Text("Cotizaciones del cliente", style = MaterialTheme.typography.titleMedium)
